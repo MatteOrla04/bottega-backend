@@ -3,6 +3,7 @@ package com.bottega.bottega_web.controller;
 import com.bottega.bottega_web.model.Operatore;
 import com.bottega.bottega_web.repositary.OperatoreRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,9 +13,12 @@ import java.util.List;
 public class AdminController {
 
     private final OperatoreRepository operatoreRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AdminController(OperatoreRepository operatoreRepository) {
+    // Aggiunto il PasswordEncoder al costruttore per importarlo
+    public AdminController(OperatoreRepository operatoreRepository, PasswordEncoder passwordEncoder) {
         this.operatoreRepository = operatoreRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/operatori")
@@ -28,6 +32,10 @@ public class AdminController {
         if (operatoreRepository.findByUsername(nuovoOperatore.getUsername()).isPresent()) {
             return ResponseEntity.status(400).body("Username già esistente.");
         }
+        
+        // CRIPTIAMO LA PASSWORD PRIMA DI SALVARLA!
+        String passwordCriptata = passwordEncoder.encode(nuovoOperatore.getPasswordHash());
+        nuovoOperatore.setPasswordHash(passwordCriptata);
         
         // Salvataggio del nuovo operatore
         operatoreRepository.save(nuovoOperatore);
