@@ -140,11 +140,10 @@ function aggiungiAlCarrello(prodotto) {
         return;
     }
 
-    // ECCO LA CORREZIONE: Ora cerca solo per Codice e Descrizione, senza confondersi coi campi vuoti!
     let voceEsistente = carrello.find(item => item.codiceBarre === prodotto.codiceBarre && item.descrizione === prodotto.descrizione);
     
     if (voceEsistente) {
-        voceEsistente.quantita++; // Aumenta la quantità a x2, x3, ecc.
+        voceEsistente.quantita++; 
     } else {
         carrello.push({
             codiceBarre: prodotto.codiceBarre,
@@ -157,7 +156,11 @@ function aggiungiAlCarrello(prodotto) {
     }
     aggiornaSchermoCassa();
 }
-// Funzione per caricare la lista dei dipendenti
+
+// ==========================================
+// SEZIONE: GESTIONE DIPENDENTI (ADMIN)
+// ==========================================
+
 function caricaDipendenti() {
     fetch('/api/admin/operatori')
         .then(response => response.json())
@@ -166,14 +169,20 @@ function caricaDipendenti() {
             tbody.innerHTML = '';
             
             operatori.forEach(op => {
+                // Logica per proteggere l'Admin dall'eliminazione
+                let azioneHtml = '';
+                if (op.ruolo === 'ADMIN') {
+                    azioneHtml = '<span style="color: #6c757d; font-style: italic; font-size: 0.9em;">🛡️ Admin (Protetto)</span>';
+                } else {
+                    azioneHtml = `<button class="btn-red" onclick="eliminaDipendente(${op.id})" style="padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; border: none;">Elimina</button>`;
+                }
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${op.id}</td>
                     <td>${op.username}</td>
-                    <td>${op.ruolo || 'Operatore'}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="eliminaDipendente(${op.id})">Elimina</button>
-                    </td>
+                    <td>${op.ruolo || 'OPERATORE'}</td>
+                    <td>${azioneHtml}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -195,9 +204,43 @@ function eliminaDipendente(id) {
     }
 }
 
+function apriModaleEListaDipendenti() {
+    caricaDipendenti(); // Scarica la lista
+    apriModale('modal-gestione-dipendenti'); // Apre la schermata
+}
 
-// Chiama questa funzione quando apri la dashboard admin
-// caricaDipendenti();
+function inviaNuovoDipendente(event) {
+    event.preventDefault();
+    const username = document.getElementById('dipendente-username').value;
+    const password = document.getElementById('dipendente-password').value;
+
+    const dati = {
+        username: username,
+        passwordHash: password,
+        ruolo: 'OPERATORE' // Assegniamo un ruolo di base
+    };
+
+    fetch('/api/admin/operatori', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dati)
+    })
+    .then(response => {
+        if (response.ok) {
+            alert("Dipendente creato con successo!");
+            document.getElementById('form-nuovo-dipendente').reset();
+            caricaDipendenti(); // Ricarica subito la tabella sotto
+        } else {
+            alert("Errore durante la creazione del dipendente. L'username potrebbe già esistere.");
+        }
+    })
+    .catch(err => console.error('Errore:', err));
+}
+
+// ==========================================
+// SEZIONE: CARRELLO E CASSA
+// ==========================================
+
 function aggiungiProdottoLibero() {
     let descrizione = prompt("Descrizione prodotto (Es. 1kg Zucchine):");
     if (!descrizione || descrizione.trim() === "") return;
@@ -568,38 +611,4 @@ function apriVisualizzatoreDocumenti(stringaBase64) {
     modaleFoto.style.zIndex = "99999";
     
     apriModale('modal-documento-pos');
-}
-
-function apriModaleEListaDipendenti() {
-    caricaDipendenti(); // Scarica la lista
-    apriModale('modal-gestione-dipendenti'); // Apre la schermata
-}
-
-function inviaNuovoDipendente(event) {
-    event.preventDefault();
-    const username = document.getElementById('dipendente-username').value;
-    const password = document.getElementById('dipendente-password').value;
-
-   
-    const dati = {
-        username: username,
-        passwordHash: password,
-        ruolo: 'OPERATORE' // Assegniamo un ruolo di base
-    };
-
-    fetch('/api/admin/operatori', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dati)
-    })
-    .then(response => {
-        if (response.ok) {
-            alert("Dipendente creato con successo!");
-            document.getElementById('form-nuovo-dipendente').reset();
-            caricaDipendenti(); // Ricarica subito la tabella sotto
-        } else {
-            alert("Errore durante la creazione del dipendente. L'username potrebbe già esistere.");
-        }
-    })
-    .catch(err => console.error('Errore:', err));
 }
