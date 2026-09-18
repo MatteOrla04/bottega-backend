@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POS Bottega Solidale</title>
     <!-- IL TRUCCO ANTI-CACHE ESTREMO (v=105) -->
-    <link rel="stylesheet" href="style.css?v=105">
+    <link rel="stylesheet" href="style.css?v=200">
     
     <script>
         if (!sessionStorage.getItem("operatoreLoggato")) {
@@ -20,6 +20,7 @@
         
         <div class="controls" style="display: flex; gap: 10px; align-items: center;">
             <button id="btn-admin-log" style="display: none; background-color: #17a2b8; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="window.location.href='audit_log.html'">Registro</button>
+            <button id="btn-gestione-dipendenti" style="display: none; background-color: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="apriModale('modal-nuovo-dipendente')">Aggiungi Dipendente</button>
             <button style="background-color: #dc3545; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="eseguiLogout()">Esci</button>
             <span id="clock" style="margin-left: 10px; margin-right: 10px; font-weight: bold;">12:00</span>
             <button id="theme-toggle" style="padding: 8px 15px; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; font-weight: bold;">Dark Mode</button>
@@ -251,6 +252,7 @@
             }
             if (sessionStorage.getItem("ruoloOperatore") === 'ADMIN') {
                 document.getElementById('btn-admin-log').style.display = 'inline-block';
+                document.getElementById('btn-gestione-dipendenti').style.display = 'inline-block'; 
             }
         });
 
@@ -262,5 +264,23 @@
             window.location.href = "login.html";
         }
     </script>
+    <!-- MODALE: Nuovo Dipendente -->
+<div id="modal-nuovo-dipendente" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <span class="close-btn" onclick="chiudiModale('modal-nuovo-dipendente')">&times;</span>
+        <h2>Registra Nuovo Dipendente</h2>
+        <form id="form-nuovo-dipendente" onsubmit="inviaNuovoDipendente(event)">
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Username:</label>
+                <input type="text" id="dipendente-username" required style="width: 100%; padding: 8px; margin-top: 5px;">
+            </div>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Password Provvisoria:</label>
+                <input type="password" id="dipendente-password" required style="width: 100%; padding: 8px; margin-top: 5px;">
+            </div>
+            <button type="submit" class="btn-green" style="width: 100%; padding: 10px; font-weight: bold; cursor: pointer;">Crea Dipendente</button>
+        </form>
+    </div>
+</div>
 </body>
 </html>
