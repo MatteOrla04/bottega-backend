@@ -571,6 +571,28 @@ function apriVisualizzatoreDocumenti(stringaBase64) {
 }
 
 function apriModaleEListaDipendenti() {
-    caricaDipendenti(); // Scarica la lista aggiornata dal backend
-    apriModale('modal-gestione-dipendenti');
+    caricaDipendenti(); // Scarica la lista
+    apriModale('modal-gestione-dipendenti'); // Apre la schermata
+}
+
+function inviaNuovoDipendente(event) {
+    event.preventDefault();
+    const username = document.getElementById('dipendente-username').value;
+    const password = document.getElementById('dipendente-password').value;
+
+    fetch('/api/admin/operatori', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    })
+    .then(response => {
+        if (response.ok) {
+            alert("Dipendente creato con successo!");
+            document.getElementById('form-nuovo-dipendente').reset();
+            caricaDipendenti(); // Ricarica subito la tabella sotto
+        } else {
+            alert("Errore durante la creazione del dipendente.");
+        }
+    })
+    .catch(err => console.error('Errore:', err));
 }

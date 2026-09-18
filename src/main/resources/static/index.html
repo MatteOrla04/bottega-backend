@@ -20,7 +20,7 @@
         
         <div class="controls" style="display: flex; gap: 10px; align-items: center;">
             <button id="btn-admin-log" style="display: none; background-color: #17a2b8; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="window.location.href='audit_log.html'">Registro</button>
-            <button id="btn-gestione-dipendenti" style="display: none; background-color: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="apriModale('modal-nuovo-dipendente')">Aggiungi Dipendente</button>
+            <button id="btn-gestione-dipendenti" style="display: none; background-color: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="apriModale('modal-nuovo-dipendente')">Gestione Dipendenti</button>
             <button style="background-color: #dc3545; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="eseguiLogout()">Esci</button>
             <span id="clock" style="margin-left: 10px; margin-right: 10px; font-weight: bold;">12:00</span>
             <button id="theme-toggle" style="padding: 8px 15px; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; font-weight: bold;">Dark Mode</button>
@@ -297,23 +297,44 @@
         </form>
     </div>
 </div>
-<!-- MODALE: Gestione Dipendenti (Lista e Eliminazione) -->
+<!-- MODALE UNICA: Gestione e Aggiunta Dipendenti -->
 <div id="modal-gestione-dipendenti" class="modal">
-    <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-content" style="max-width: 650px; max-height: 85vh; overflow-y: auto;">
         <span class="close-btn" onclick="chiudiModale('modal-gestione-dipendenti')">&times;</span>
-        <h2>Gestione Dipendenti</h2>
-        <div style="overflow-y: auto; max-height: 400px; margin-top: 20px;">
+        <h2>Gestione Personale (Operatori)</h2>
+
+        <!-- SEZIONE 1: Form per Aggiungere un Dipendente -->
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <h3 style="margin-top: 0; font-size: 1.1em;">Aggiungi Nuovo Dipendente</h3>
+            <form id="form-nuovo-dipendente" onsubmit="inviaNuovoDipendente(event)">
+                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                    <div style="flex: 1;" class="form-group">
+                        <label>Username:</label>
+                        <input type="text" id="dipendente-username" required style="width: 100%; padding: 8px;">
+                    </div>
+                    <div style="flex: 1;" class="form-group">
+                        <label>Password:</label>
+                        <input type="password" id="dipendente-password" required style="width: 100%; padding: 8px;">
+                    </div>
+                    <button type="submit" class="btn-green" style="padding: 9px 15px; font-weight: bold; cursor: pointer; height: 38px;">Salva</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- SEZIONE 2: Tabella Dipendenti con Bottone Elimina -->
+        <div>
+            <h3 style="font-size: 1.1em; margin-bottom: 10px;">Lista Dipendenti Registrati</h3>
             <table class="table table-striped" style="width: 100%;">
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Username</th>
                         <th>Ruolo</th>
-                        <th>Azioni</th>
+                        <th>Azione</th>
                     </tr>
                 </thead>
                 <tbody id="tabella-operatori">
-                    <!-- I dati verranno caricati qui via JS -->
+                    <!-- I dipendenti vengono caricati qui in automatico -->
                 </tbody>
             </table>
         </div>

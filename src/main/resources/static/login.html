@@ -71,7 +71,7 @@
                 <input type="password" id="login-password" placeholder="Inserisci la password">
             </div>
             
-            <button class="btn-conferma" style="margin-top: 15px;" onclick="eseguiLogin()">Entra nella Bottega</button>
+            <button id="btn-login" class="btn-conferma" style="margin-top: 15px;" onclick="eseguiLogin()">Entra nella Bottega</button>
             
             <span class="toggle-link" onclick="cambiaSchermata('registrazione')">Nuovo operatore? Registrati qui</span>
         </div>
@@ -90,19 +90,40 @@
                 <input type="password" id="reg-password" placeholder="Minimo 6 caratteri">
             </div>
             
-            <button class="btn-blue" style="width: 100%; padding: 12px; margin-top: 15px; border-radius: 6px; font-size: 16px;" onclick="eseguiRegistrazione()">Registra e Accedi</button>
+            <button id="btn-reg" class="btn-blue" style="width: 100%; padding: 12px; margin-top: 15px; border-radius: 6px; font-size: 16px;" onclick="eseguiRegistrazione()">Registra e Accedi</button>
             
             <span class="toggle-link" onclick="cambiaSchermata('accesso')">Hai già un account? Torna al Login</span>
         </div>
 
     </div>
 
-    <!-- QUI INIZIA IL JAVASCRIPT CORRETTO E CHIUSO BENE -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             if (localStorage.getItem('tema_bottega') === 'dark') {
                 document.body.classList.add('dark');
             }
+
+            // Ascolta il tasto INVIO sui campi del Login
+            const inputsLogin = document.querySelectorAll('#form-accesso input');
+            inputsLogin.forEach(input => {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        eseguiLogin();
+                    }
+                });
+            });
+
+            // Ascolta il tasto INVIO sui campi della Registrazione
+            const inputsReg = document.querySelectorAll('#form-registrazione input');
+            inputsReg.forEach(input => {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        eseguiRegistrazione();
+                    }
+                });
+            });
         });
 
         function cambiaSchermata(modalita) {
@@ -123,11 +144,17 @@
         function eseguiRegistrazione() {
             const user = document.getElementById('reg-username').value.trim();
             const pass = document.getElementById('reg-password').value.trim();
+            const btnReg = document.getElementById('btn-reg');
 
             if (!user || pass.length < 6) {
                 alert("Attenzione: Inserisci un username e una password di almeno 6 caratteri!");
                 return;
             }
+
+            // Disabilita il bottone ed evita altri click
+            btnReg.disabled = true;
+            btnReg.style.opacity = "0.6";
+            btnReg.style.cursor = "not-allowed";
 
             const dati = {
                 username: user,
@@ -148,17 +175,29 @@
                     alert("Errore: " + messaggio); 
                 }
             })
-            .catch(error => console.error("Errore di rete:", error));
+            .catch(error => console.error("Errore di rete:", error))
+            .finally(() => {
+                // Riattiva il bottone in caso di errore o completamento
+                btnReg.disabled = false;
+                btnReg.style.opacity = "1";
+                btnReg.style.cursor = "pointer";
+            });
         }
 
         function eseguiLogin() {
             const user = document.getElementById('login-username').value.trim();
             const pass = document.getElementById('login-password').value.trim();
+            const btnLogin = document.getElementById('btn-login');
 
             if (!user || !pass) {
                 alert("Inserisci username e password!");
                 return;
             }
+
+            // Disabilita subito il bottone per impedire doppi click o selezioni
+            btnLogin.disabled = true;
+            btnLogin.style.opacity = "0.6";
+            btnLogin.style.cursor = "not-allowed";
 
             const dati = {
                 username: user,
@@ -181,9 +220,18 @@
                 } else {
                     const messaggio = await response.text();
                     alert("Accesso negato: " + messaggio);
+                    // Riattiva il bottone se le credenziali sono errate
+                    btnLogin.disabled = false;
+                    btnLogin.style.opacity = "1";
+                    btnLogin.style.cursor = "pointer";
                 }
             })
-            .catch(error => console.error("Errore di rete:", error));
+            .catch(error => {
+                console.error("Errore di rete:", error);
+                btnLogin.disabled = false;
+                btnLogin.style.opacity = "1";
+                btnLogin.style.cursor = "pointer";
+            });
         }
     </script>
 </body>
