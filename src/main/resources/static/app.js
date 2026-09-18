@@ -163,7 +163,7 @@ function caricaDipendenti() {
         .then(response => response.json())
         .then(operatori => {
             const tbody = document.getElementById('tabella-operatori');
-            tbody.innerHTML = ''; // Pulisci la tabella
+            tbody.innerHTML = '';
             
             operatori.forEach(op => {
                 const tr = document.createElement('tr');
@@ -181,23 +181,20 @@ function caricaDipendenti() {
         .catch(err => console.error('Errore nel caricamento dei dipendenti:', err));
 }
 
-// Funzione per eliminare il dipendente
 function eliminaDipendente(id) {
-    if (confirm("Sei sicuro di voler licenziare ed eliminare questo dipendente?")) {
-        fetch(`/api/admin/operatori/${id}`, {
-            method: 'DELETE'
-        })
-        .then(response => {
-            if (response.ok) {
-                alert("Dipendente eliminato con successo!");
-                caricaDipendenti(); // Ricarica la tabella
-            } else {
-                alert("Errore durante l'eliminazione del dipendente.");
-            }
-        })
-        .catch(err => console.error('Errore di rete:', err));
+    if (confirm("Sei sicuro di voler eliminare questo dipendente?")) {
+        fetch(`/api/admin/operatori/${id}`, { method: 'DELETE' })
+            .then(response => {
+                if (response.ok) {
+                    alert("Dipendente eliminato con successo!");
+                    caricaDipendenti();
+                } else {
+                    alert("Errore durante l'eliminazione.");
+                }
+            });
     }
 }
+
 
 // Chiama questa funzione quando apri la dashboard admin
 // caricaDipendenti();
@@ -254,6 +251,7 @@ function aggiornaSchermoCassa() {
     }
     btnConfirm.disabled = bloccaConferma;
 }
+
 
 function rimuoviDalCarrello(index) {
     if (carrello[index].quantita > 1) carrello[index].quantita--;
