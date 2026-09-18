@@ -22,6 +22,18 @@ public class AdminController {
         return operatoreRepository.findAll();
     }
 
+    @PostMapping("/operatori")
+    public ResponseEntity<?> creaOperatore(@RequestBody Operatore nuovoOperatore) {
+        // Verifica se l'username esiste già
+        if (operatoreRepository.findByUsername(nuovoOperatore.getUsername()).isPresent()) {
+            return ResponseEntity.status(400).body("Username già esistente.");
+        }
+        
+        // Salvataggio del nuovo operatore
+        operatoreRepository.save(nuovoOperatore);
+        return ResponseEntity.ok().body("Dipendente creato con successo!");
+    }
+
     @DeleteMapping("/operatori/{id}")
     public ResponseEntity<?> eliminaOperatore(@PathVariable Long id) {
         if (operatoreRepository.existsById(id)) {
