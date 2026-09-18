@@ -580,10 +580,17 @@ function inviaNuovoDipendente(event) {
     const username = document.getElementById('dipendente-username').value;
     const password = document.getElementById('dipendente-password').value;
 
+   
+    const dati = {
+        username: username,
+        passwordHash: password,
+        ruolo: 'OPERATORE' // Assegniamo un ruolo di base
+    };
+
     fetch('/api/admin/operatori', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify(dati)
     })
     .then(response => {
         if (response.ok) {
@@ -591,7 +598,7 @@ function inviaNuovoDipendente(event) {
             document.getElementById('form-nuovo-dipendente').reset();
             caricaDipendenti(); // Ricarica subito la tabella sotto
         } else {
-            alert("Errore durante la creazione del dipendente.");
+            alert("Errore durante la creazione del dipendente. L'username potrebbe già esistere.");
         }
     })
     .catch(err => console.error('Errore:', err));

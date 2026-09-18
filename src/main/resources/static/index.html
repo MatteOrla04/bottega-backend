@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POS Bottega Solidale</title>
-    <!-- IL TRUCCO ANTI-CACHE ESTREMO (v=105) -->
+    <!-- IL TRUCCO ANTI-CACHE ESTREMO -->
     <link rel="stylesheet" href="style.css?v=200">
     
     <script>
@@ -20,7 +20,7 @@
         
         <div class="controls" style="display: flex; gap: 10px; align-items: center;">
             <button id="btn-admin-log" style="display: none; background-color: #17a2b8; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="window.location.href='audit_log.html'">Registro</button>
-            <button id="btn-gestione-dipendenti" style="display: none; background-color: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="apriModale('modal-nuovo-dipendente')">Gestione Dipendenti</button>
+            <button id="btn-gestione-dipendenti" style="display: none; background-color: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="apriModaleEListaDipendenti()">Gestione Dipendenti</button>
             <button style="background-color: #dc3545; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="eseguiLogout()">Esci</button>
             <span id="clock" style="margin-left: 10px; margin-right: 10px; font-weight: bold;">12:00</span>
             <button id="theme-toggle" style="padding: 8px 15px; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; font-weight: bold;">Dark Mode</button>
@@ -125,27 +125,7 @@
                     <div class="form-group"><label>Città:</label><input type="text" id="nuova-citta"></div>
                     <div class="form-group"><label>Provincia:</label><input type="text" id="nuova-provincia" maxlength="2" oninput="this.value = this.value.toUpperCase()"></div>
                     <div class="form-group"><label>Indirizzo:</label><input type="text" id="nuovo-indirizzo"></div>
-                    
-                    <!--  Accetta le lettere e ha un limite di 10 caratteri -->
-                    <div class="form-group">
-                        <label>N. Civico:</label>
-                        <input type="text" id="nuovo-civico" maxlength="10" placeholder="es. 11A">
-                    </div>
-                    <div class="card mt-4">
-                        <h3>Gestione Dipendenti (Operatori)</h3>
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Username</th>
-                                    <th>Ruolo</th>
-                                    <th>Azioni</th>
-                                </tr>
-                            <tbody id="tabella-operatori">
-                                <!-- I dipendenti verranno caricati dinamicamente qui -->
-                            </tbody>
-                        </table>
-                    </div>
+                    <div class="form-group"><label>N. Civico:</label><input type="text" id="nuovo-civico" maxlength="10" placeholder="es. 11A"></div>
                     <div class="form-group"><label>Cittadinanza:</label><input type="text" id="nuovo-cittadinanza"></div>
                     <div class="form-group"><label>Nucleo Familiare:</label><input type="number" id="nuovo-nucleo" min="1" value="1"></div>
                     <div class="form-group"><label>Punti Assegnati:</label><input type="text" id="nuovo-punti-previsti" value="10" disabled class="campo-punti"></div>
@@ -164,7 +144,6 @@
         </div>
     </div>
 
-   
     <!-- MODALE: Anagrafica Iscritti -->
     <div id="modal-anagrafica" class="modal">
         <div class="modal-content" style="max-width: 800px;">
@@ -221,7 +200,6 @@
                 <h1 id="dettaglio-saldo" style="color: var(--green-accent, #28a745); margin: 5px 0; font-size: 2.5em;">0</h1>
             </div>
 
-           <!-- IL BOTTONE DELL'ANAGRAFICA! -->
            <div id="area-documento" style="margin: 15px 0; display: none;">
                 <h4 style="margin-bottom: 5px;">Documenti d'Identità</h4>
                 
@@ -241,7 +219,7 @@
         </div>
     </div>
 
-    <!-- MODALE: Visualizzatore Documento (Universale per Cassa e Anagrafica) -->
+    <!-- MODALE: Visualizzatore Documento -->
     <div id="modal-documento-pos" class="modal">
         <div class="modal-content" style="max-width: 500px; text-align: center;">
             <span class="close-btn" onclick="chiudiModale('modal-documento-pos'); document.getElementById('scanner-input').focus();">&times;</span>
@@ -251,12 +229,55 @@
         </div>
     </div>
 
-    <script src="app.js?v=105"></script>
+    <!-- MODALE UNICA: Gestione e Aggiunta Dipendenti (Pulita e Pronta) -->
+    <div id="modal-gestione-dipendenti" class="modal">
+        <div class="modal-content" style="max-width: 650px; max-height: 85vh; overflow-y: auto;">
+            <span class="close-btn" onclick="chiudiModale('modal-gestione-dipendenti')">&times;</span>
+            <h2>Gestione Personale (Operatori)</h2>
+
+            <!-- Form Aggiunta -->
+            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="margin-top: 0; font-size: 1.1em; color: black;">Aggiungi Nuovo Dipendente</h3>
+                <form id="form-nuovo-dipendente" onsubmit="inviaNuovoDipendente(event)">
+                    <div style="display: flex; gap: 10px; align-items: flex-end;">
+                        <div style="flex: 1;" class="form-group">
+                            <label>Username:</label>
+                            <input type="text" id="dipendente-username" required style="width: 100%; padding: 8px;">
+                        </div>
+                        <div style="flex: 1;" class="form-group">
+                            <label>Password:</label>
+                            <input type="password" id="dipendente-password" required style="width: 100%; padding: 8px;">
+                        </div>
+                        <button type="submit" class="btn-green" style="padding: 9px 15px; font-weight: bold; cursor: pointer; height: 38px;">Salva</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabella Lista -->
+            <div>
+                <h3 style="font-size: 1.1em; margin-bottom: 10px; color: black;">Lista Dipendenti Registrati</h3>
+                <table class="table table-striped" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Ruolo</th>
+                            <th>Azione</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabella-operatori">
+                        <!-- I dipendenti vengono caricati qui in automatico -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=106"></script>
     <script>
         function apriModale(idModale) { document.getElementById(idModale).style.display = 'block'; }
         function chiudiModale(idModale) { document.getElementById(idModale).style.display = 'none'; }
         
-        // SCRIPT CORRETTO PER IL TEMA (Aggiorna anche il testo del bottone)
         document.addEventListener("DOMContentLoaded", () => {
             const isDark = localStorage.getItem('tema_bottega') === 'dark';
             if (isDark) {
@@ -271,74 +292,11 @@
             }
         });
 
-        
-
         function eseguiLogout() {
             sessionStorage.removeItem("operatoreLoggato");
             sessionStorage.removeItem("ruoloOperatore");
             window.location.href = "login.html";
         }
     </script>
-    <!-- MODALE: Nuovo Dipendente -->
-<div id="modal-nuovo-dipendente" class="modal">
-    <div class="modal-content" style="max-width: 400px;">
-        <span class="close-btn" onclick="chiudiModale('modal-nuovo-dipendente')">&times;</span>
-        <h2>Registra Nuovo Dipendente</h2>
-        <form id="form-nuovo-dipendente" onsubmit="inviaNuovoDipendente(event)">
-            <div class="form-group" style="margin-bottom: 15px;">
-                <label>Username:</label>
-                <input type="text" id="dipendente-username" required style="width: 100%; padding: 8px; margin-top: 5px;">
-            </div>
-            <div class="form-group" style="margin-bottom: 15px;">
-                <label>Password Provvisoria:</label>
-                <input type="password" id="dipendente-password" required style="width: 100%; padding: 8px; margin-top: 5px;">
-            </div>
-            <button type="submit" class="btn-green" style="width: 100%; padding: 10px; font-weight: bold; cursor: pointer;">Crea Dipendente</button>
-        </form>
-    </div>
-</div>
-<!-- MODALE UNICA: Gestione e Aggiunta Dipendenti -->
-<div id="modal-gestione-dipendenti" class="modal">
-    <div class="modal-content" style="max-width: 650px; max-height: 85vh; overflow-y: auto;">
-        <span class="close-btn" onclick="chiudiModale('modal-gestione-dipendenti')">&times;</span>
-        <h2>Gestione Personale (Operatori)</h2>
-
-        <!-- SEZIONE 1: Form per Aggiungere un Dipendente -->
-        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <h3 style="margin-top: 0; font-size: 1.1em;">Aggiungi Nuovo Dipendente</h3>
-            <form id="form-nuovo-dipendente" onsubmit="inviaNuovoDipendente(event)">
-                <div style="display: flex; gap: 10px; align-items: flex-end;">
-                    <div style="flex: 1;" class="form-group">
-                        <label>Username:</label>
-                        <input type="text" id="dipendente-username" required style="width: 100%; padding: 8px;">
-                    </div>
-                    <div style="flex: 1;" class="form-group">
-                        <label>Password:</label>
-                        <input type="password" id="dipendente-password" required style="width: 100%; padding: 8px;">
-                    </div>
-                    <button type="submit" class="btn-green" style="padding: 9px 15px; font-weight: bold; cursor: pointer; height: 38px;">Salva</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- SEZIONE 2: Tabella Dipendenti con Bottone Elimina -->
-        <div>
-            <h3 style="font-size: 1.1em; margin-bottom: 10px;">Lista Dipendenti Registrati</h3>
-            <table class="table table-striped" style="width: 100%;">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Ruolo</th>
-                        <th>Azione</th>
-                    </tr>
-                </thead>
-                <tbody id="tabella-operatori">
-                    <!-- I dipendenti vengono caricati qui in automatico -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
 </body>
 </html>
