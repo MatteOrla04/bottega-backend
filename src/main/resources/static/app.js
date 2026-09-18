@@ -569,3 +569,8 @@ function apriVisualizzatoreDocumenti(stringaBase64) {
     
     apriModale('modal-documento-pos');
 }
+
+function apriModaleEListaDipendenti() {
+    caricaDipendenti(); // Scarica la lista aggiornata dal backend
+    apriModale('modal-gestione-dipendenti');
+}
