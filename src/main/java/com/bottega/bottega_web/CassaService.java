@@ -22,60 +22,59 @@ public class CassaService {
         this.transazioneDao = transazioneDao;
     }
 
-    // Usiamo @Transactional: o tutto il carrello va a buon fine, o si annulla tutto
     @Transactional
-    public void processaScontrino(ScontrinoDTO scontrino) {
-        System.out.println("--- INIZIO ELABORAZIONE SCONTRINO ---");
+    // AGGIUNTO IL PARAMETRO idBottega
+    public void processaScontrino(ScontrinoDTO scontrino, Long idBottega) {
+        System.out.println("--- INIZIO ELABORAZIONE SCONTRINO (Bottega " + idBottega + ") ---");
 
-        // 1. Troviamo il cliente
-        Beneficiario cliente = beneficiarioDao.cercaPerTessera(scontrino.getCodiceTessera());
+        // 1. Troviamo il cliente DELLA TUA BOTTEGA
+        Beneficiario cliente = beneficiarioDao.cercaPerTessera(scontrino.getCodiceTessera(), idBottega);
         if (cliente == null) {
-            throw new IllegalStateException("Errore: tessera " + scontrino.getCodiceTessera() + " non trovata");
+            throw new IllegalStateException("Errore: tessera " + scontrino.getCodiceTessera() + " non trovata nella tua bottega");
         }
 
         int costoTotaleScontrino = 0;
 
         // 2. Cicliamo su ogni prodotto del carrello
         for (ElementoScontrinoDTO elemento : scontrino.getElementi()) {
-            Prodotto articolo = prodottoDao.cercaPerCodiceBarre(elemento.getCodiceBarre());
+            
+            // Cerchiamo il prodotto NEL TUO MAGAZZINO
+            Prodotto articolo = prodottoDao.cercaPerCodiceBarre(elemento.getCodiceBarre(), idBottega);
             
             if (articolo == null) {
-                throw new IllegalStateException("Errore: Prodotto " + elemento.getCodiceBarre() + " non trovato");
+                throw new IllegalStateException("Errore: Prodotto " + elemento.getCodiceBarre() + " non trovato nel tuo magazzino");
             }
 
             int quantita = elemento.getQuantita();
             
-            // --- INIZIO MODIFICA MAGICA ---
-            // Se il front-end ci passa un prezzo su misura (come per il prodotto libero), usiamo quello!
-            // Altrimenti, usiamo il prezzo normale da magazzino.
             int costoRiga = 0;
             if (elemento.getPrezzoCustom() != null) {
                 costoRiga = elemento.getPrezzoCustom() * quantita;
             } else {
                 costoRiga = articolo.getPuntiCosto() * quantita;
             }
-            // --- FINE MODIFICA MAGICA ---
 
             costoTotaleScontrino += costoRiga;
 
-            // Riduciamo la scorta in memoria e aggiorniamo la tabella dei prodotti
+            // Riduciamo la scorta e aggiorniamo il TUO magazzino
             articolo.riduciScorta(quantita);
-            prodottoDao.aggiornaScorta(articolo.getCodiceBarre(), articolo.getScortaMagazzino());
+            prodottoDao.aggiornaScorta(articolo.getCodiceBarre(), articolo.getScortaMagazzino(), idBottega);
 
-            // Salviamo la singola riga di transazione INCLUDENDO LE NOTE
+            // Salviamo lo scontrino NEL TUO STORICO
             Transazione transazioneRiga = new Transazione(
                 scontrino.getCodiceTessera(), 
                 articolo.getCodiceBarre(), 
                 quantita, 
                 costoRiga, 
-                elemento.getNote() // Aggiungiamo la descrizione testuale (es. "Zucchine")
+                elemento.getNote(), 
+                idBottega // PASSIAMO LA CHIAVE!
             );
             transazioneDao.salvaTransazione(transazioneRiga);
         }
 
-        // 3. Alla fine di tutto, scaliamo i punti totali all'utente in un colpo solo
+        // 3. Scaliamo i punti al TUO cliente
         cliente.detraiPunti(costoTotaleScontrino);
-        beneficiarioDao.aggiornaSaldoPunti(cliente.getCodiceTessera(), cliente.getSaldoPunti());
+        beneficiarioDao.aggiornaSaldoPunti(cliente.getCodiceTessera(), cliente.getSaldoPunti(), idBottega);
 
         System.out.println("Transazione completata con successo!");
         System.out.println("Saldo residuo di " + cliente.getNome() + ": " + cliente.getSaldoPunti());

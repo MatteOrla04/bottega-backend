@@ -15,29 +15,27 @@ public class AdminController {
     private final OperatoreRepository operatoreRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // Aggiunto il PasswordEncoder al costruttore per importarlo
     public AdminController(OperatoreRepository operatoreRepository, PasswordEncoder passwordEncoder) {
         this.operatoreRepository = operatoreRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
-    @GetMapping("/operatori")
-    public List<Operatore> getTuttiOperatori() {
-        return operatoreRepository.findAll();
+    // MODIFICA FONDAMENTALE: Restituisce SOLO i dipendenti della bottega specificata
+    @GetMapping("/operatori/bottega/{idBottega}")
+    public List<Operatore> getTuttiOperatori(@PathVariable Long idBottega) {
+        return operatoreRepository.findByIdBottega(idBottega);
     }
 
     @PostMapping("/operatori")
     public ResponseEntity<?> creaOperatore(@RequestBody Operatore nuovoOperatore) {
-        // Verifica se l'username esiste già
         if (operatoreRepository.findByUsername(nuovoOperatore.getUsername()).isPresent()) {
             return ResponseEntity.status(400).body("Username già esistente.");
         }
         
-        // CRIPTIAMO LA PASSWORD PRIMA DI SALVARLA!
         String passwordCriptata = passwordEncoder.encode(nuovoOperatore.getPasswordHash());
         nuovoOperatore.setPasswordHash(passwordCriptata);
         
-        // Salvataggio del nuovo operatore
+        // L'idBottega arriverà automaticamente dal frontend tramite il JSON. Salviamo e basta!
         operatoreRepository.save(nuovoOperatore);
         return ResponseEntity.ok().body("Dipendente creato con successo!");
     }

@@ -103,7 +103,6 @@
                 document.body.classList.add('dark');
             }
 
-            // Ascolta il tasto INVIO sui campi del Login
             const inputsLogin = document.querySelectorAll('#form-accesso input');
             inputsLogin.forEach(input => {
                 input.addEventListener('keydown', (e) => {
@@ -114,7 +113,6 @@
                 });
             });
 
-            // Ascolta il tasto INVIO sui campi della Registrazione
             const inputsReg = document.querySelectorAll('#form-registrazione input');
             inputsReg.forEach(input => {
                 input.addEventListener('keydown', (e) => {
@@ -151,7 +149,6 @@
                 return;
             }
 
-            // Disabilita il bottone ed evita altri click
             btnReg.disabled = true;
             btnReg.style.opacity = "0.6";
             btnReg.style.cursor = "not-allowed";
@@ -177,7 +174,6 @@
             })
             .catch(error => console.error("Errore di rete:", error))
             .finally(() => {
-                // Riattiva il bottone in caso di errore o completamento
                 btnReg.disabled = false;
                 btnReg.style.opacity = "1";
                 btnReg.style.cursor = "pointer";
@@ -194,7 +190,6 @@
                 return;
             }
 
-            // Disabilita subito il bottone per impedire doppi click o selezioni
             btnLogin.disabled = true;
             btnLogin.style.opacity = "0.6";
             btnLogin.style.cursor = "not-allowed";
@@ -216,11 +211,13 @@
                     sessionStorage.setItem("operatoreLoggato", datiUtente.username);
                     sessionStorage.setItem("ruoloOperatore", datiUtente.ruolo); 
                     
+                    // --- MODIFICA CHIAVE MULTI-TENANT: SALVIAMO L'ID BOTTEGA ---
+                    sessionStorage.setItem("idBottega", datiUtente.idBottega);
+                    
                     window.location.href = 'index.html';
                 } else {
                     const messaggio = await response.text();
                     alert("Accesso negato: " + messaggio);
-                    // Riattiva il bottone se le credenziali sono errate
                     btnLogin.disabled = false;
                     btnLogin.style.opacity = "1";
                     btnLogin.style.cursor = "pointer";

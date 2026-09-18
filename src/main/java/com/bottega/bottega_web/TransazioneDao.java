@@ -21,8 +21,8 @@ public class TransazioneDao {
     }
 
     public void salvaTransazione(Transazione t) {
-        // Aggiungiamo anche le Note al salvataggio
-        String sql = "INSERT INTO transazioni (codice_tessera, codice_barre, quantita, punti_spesi, data_operazione, note) VALUES (?, ?, ?, ?, NOW(), ?)";
+        // AGGIUNTO id_bottega ALLA QUERY
+        String sql = "INSERT INTO transazioni (codice_tessera, codice_barre, quantita, punti_spesi, data_operazione, note, id_bottega) VALUES (?, ?, ?, ?, NOW(), ?, ?)";
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -32,9 +32,10 @@ public class TransazioneDao {
             pstmt.setInt(3, t.getQuantita());
             pstmt.setInt(4, t.getPuntiSpesi());
             pstmt.setString(5, t.getNote()); 
+            pstmt.setLong(6, t.getIdBottega() != null ? t.getIdBottega() : 1L); // LA CHIAVE MULTI-TENANT
 
             pstmt.executeUpdate();
-            System.out.println("Scontrino archiviato nello storico con Data, Ora e Note!");
+            System.out.println("Scontrino archiviato nello storico per la Bottega " + t.getIdBottega());
 
         } catch (SQLException e) {
             System.out.println("Errore durante il salvataggio dello scontrino nel database");
@@ -42,14 +43,16 @@ public class TransazioneDao {
         }
     }
 
-    public List<Transazione> trovaStoricoPerTessera(String tessera) {
-        String sql = "SELECT * FROM transazioni WHERE codice_tessera = ? ORDER BY data_operazione DESC";
+    // AGGIUNTO IL PARAMETRO idBottega E IL FILTRO NELLA QUERY
+    public List<Transazione> trovaStoricoPerTessera(String tessera, Long idBottega) {
+        String sql = "SELECT * FROM transazioni WHERE codice_tessera = ? AND id_bottega = ? ORDER BY data_operazione DESC";
         List<Transazione> storico = new ArrayList<>();
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setString(1, tessera);
+            pstmt.setLong(2, idBottega); // Filtro sicurezza
             
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -58,8 +61,9 @@ public class TransazioneDao {
                         rs.getString("codice_barre"),
                         rs.getInt("quantita"),
                         rs.getInt("punti_spesi"),
-                        rs.getString("data_operazione"), // 5° parametro (La Data torna al suo posto!)
-                        rs.getString("note")             // 6° parametro (Le Note per il prodotto libero)
+                        rs.getString("data_operazione"), 
+                        rs.getString("note"),             
+                        rs.getLong("id_bottega") // 7° parametro per il nuovo costruttore
                     ));
                 }
             }

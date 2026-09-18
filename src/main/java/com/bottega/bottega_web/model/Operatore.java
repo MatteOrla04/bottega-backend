@@ -19,6 +19,10 @@ public class Operatore {
     @Column(nullable = false)
     private String ruolo = "OPERATORE";
 
+    // IL NUOVO CAMPO FONDAMENTALE PER IL MULTI-TENANT
+    @Column(name = "id_bottega")
+    private Long idBottega;
+
     // --- GETTER E SETTER ---
 
     public Long getId() {
@@ -51,5 +55,13 @@ public class Operatore {
 
     public void setRuolo(String ruolo) {
         this.ruolo = ruolo;
+    }
+
+    public Long getIdBottega() {
+        return idBottega;
+    }
+
+    public void setIdBottega(Long idBottega) {
+        this.idBottega = idBottega;
     }
 }

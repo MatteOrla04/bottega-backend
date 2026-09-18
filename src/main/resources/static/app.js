@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 if (themeToggle) {
-    // Gestione corretta dello switch visivo
     themeToggle.addEventListener('click', (evento) => {
         evento.preventDefault();
         body.classList.toggle('dark');
@@ -59,7 +58,6 @@ logo.addEventListener('click', () => {
     posSystem.classList.add('hidden');
     dashboard.classList.remove('hidden');
 });
-
 
 // --- MOTORE CENTRALE CASSA (SCANNER) ---
 const manualInput = document.getElementById('manual-input');
@@ -158,18 +156,20 @@ function aggiungiAlCarrello(prodotto) {
 }
 
 // ==========================================
-// SEZIONE: GESTIONE DIPENDENTI (ADMIN)
+// SEZIONE: GESTIONE DIPENDENTI (ADMIN) - MULTI-TENANT
 // ==========================================
 
 function caricaDipendenti() {
-    fetch('/api/admin/operatori')
+    // Recupera l'idBottega della sessione attuale, o usa 1 di default
+    const idBottega = sessionStorage.getItem("idBottega") || 1;
+
+    fetch(`/api/admin/operatori/bottega/${idBottega}`)
         .then(response => response.json())
         .then(operatori => {
             const tbody = document.getElementById('tabella-operatori');
             tbody.innerHTML = '';
             
             operatori.forEach(op => {
-                // Logica per proteggere l'Admin dall'eliminazione
                 let azioneHtml = '';
                 if (op.ruolo === 'ADMIN') {
                     azioneHtml = '<span style="color: #6c757d; font-style: italic; font-size: 0.9em;">🛡️ Admin (Protetto)</span>';
@@ -205,19 +205,21 @@ function eliminaDipendente(id) {
 }
 
 function apriModaleEListaDipendenti() {
-    caricaDipendenti(); // Scarica la lista
-    apriModale('modal-gestione-dipendenti'); // Apre la schermata
+    caricaDipendenti(); 
+    apriModale('modal-gestione-dipendenti'); 
 }
 
 function inviaNuovoDipendente(event) {
     event.preventDefault();
     const username = document.getElementById('dipendente-username').value;
     const password = document.getElementById('dipendente-password').value;
+    const idBottega = sessionStorage.getItem("idBottega") || 1;
 
     const dati = {
         username: username,
         passwordHash: password,
-        ruolo: 'OPERATORE' // Assegniamo un ruolo di base
+        ruolo: 'OPERATORE',
+        idBottega: parseInt(idBottega) // Invia l'ID Bottega corretto!
     };
 
     fetch('/api/admin/operatori', {
@@ -227,9 +229,9 @@ function inviaNuovoDipendente(event) {
     })
     .then(response => {
         if (response.ok) {
-            alert("Dipendente creato con successo!");
+            alert("Dipendente creato con successo nella tua Bottega!");
             document.getElementById('form-nuovo-dipendente').reset();
-            caricaDipendenti(); // Ricarica subito la tabella sotto
+            caricaDipendenti(); 
         } else {
             alert("Errore durante la creazione del dipendente. L'username potrebbe già esistere.");
         }
