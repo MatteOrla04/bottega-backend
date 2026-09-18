@@ -1,1 +1,4 @@
-DBngin.app/
+target/
+.DS_Store
+**/ .DS_Store
+*.class
