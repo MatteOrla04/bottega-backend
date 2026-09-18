@@ -157,7 +157,50 @@ function aggiungiAlCarrello(prodotto) {
     }
     aggiornaSchermoCassa();
 }
+// Funzione per caricare la lista dei dipendenti
+function caricaDipendenti() {
+    fetch('/api/admin/operatori')
+        .then(response => response.json())
+        .then(operatori => {
+            const tbody = document.getElementById('tabella-operatori');
+            tbody.innerHTML = ''; // Pulisci la tabella
+            
+            operatori.forEach(op => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${op.id}</td>
+                    <td>${op.username}</td>
+                    <td>${op.ruolo || 'Operatore'}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="eliminaDipendente(${op.id})">Elimina</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        })
+        .catch(err => console.error('Errore nel caricamento dei dipendenti:', err));
+}
 
+// Funzione per eliminare il dipendente
+function eliminaDipendente(id) {
+    if (confirm("Sei sicuro di voler licenziare ed eliminare questo dipendente?")) {
+        fetch(`/api/admin/operatori/${id}`, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (response.ok) {
+                alert("Dipendente eliminato con successo!");
+                caricaDipendenti(); // Ricarica la tabella
+            } else {
+                alert("Errore durante l'eliminazione del dipendente.");
+            }
+        })
+        .catch(err => console.error('Errore di rete:', err));
+    }
+}
+
+// Chiama questa funzione quando apri la dashboard admin
+// caricaDipendenti();
 function aggiungiProdottoLibero() {
     let descrizione = prompt("Descrizione prodotto (Es. 1kg Zucchine):");
     if (!descrizione || descrizione.trim() === "") return;

@@ -148,7 +148,8 @@ public void eliminaBeneficiario(String codiceTessera) {
 }
 
 public List<Beneficiario> trovaTutti() {
-    String sql = "SELECT * FROM beneficiari";
+   
+    String sql = "SELECT id, codice_tessera, nome, cognome, saldo_punti, telefono, citta, cittadinanza, indirizzo_abitazione, numero_civico, provincia, numero_nucleo_familiare, valore_isee FROM beneficiari";
     List<Beneficiario> lista = new ArrayList<>();
 
     try (Connection conn = dataSource.getConnection();
@@ -165,15 +166,14 @@ public List<Beneficiario> trovaTutti() {
                 rs.getString("telefono"),
                 rs.getString("citta"),
                 rs.getString("cittadinanza"),
-                null, 
+                null, // Nessuna immagine caricata nella lista generale per risparmiare memoria
                 rs.getString("indirizzo_abitazione"),
-               
                 rs.getString("numero_civico"),
                 rs.getString("provincia"),
                 rs.getInt("numero_nucleo_familiare"),
                 rs.getString("valore_isee")
             );
-            b.setDocumentoBase64(rs.getString("documento_base64"));
+            // Lasciamo documentoBase64 a null o vuoto nella lista
             
             lista.add(b);
         }
@@ -183,7 +183,6 @@ public List<Beneficiario> trovaTutti() {
     }
     return lista;
 }
-
 public void eliminaDocumento(String codiceTessera) {
     String sql = "UPDATE beneficiari SET documento_base64 = NULL WHERE codice_tessera = ?";
 
