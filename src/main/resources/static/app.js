@@ -160,7 +160,6 @@ function aggiungiAlCarrello(prodotto) {
 // ==========================================
 
 function caricaDipendenti() {
-    // Recupera l'idBottega della sessione attuale, o usa 1 di default
     const idBottega = sessionStorage.getItem("idBottega") || 1;
 
     fetch(`/api/admin/operatori/bottega/${idBottega}`)
@@ -219,7 +218,7 @@ function inviaNuovoDipendente(event) {
         username: username,
         passwordHash: password,
         ruolo: 'OPERATORE',
-        idBottega: parseInt(idBottega) // Invia l'ID Bottega corretto!
+        idBottega: parseInt(idBottega)
     };
 
     fetch('/api/admin/operatori', {
@@ -246,12 +245,12 @@ function inviaNuovoDipendente(event) {
 function aggiungiProdottoLibero() {
     let descrizione = prompt("Descrizione prodotto (Es. 1kg Zucchine):");
     if (!descrizione || descrizione.trim() === "") {
-        document.getElementById('scanner-input').focus(); // Riporta il focus se annulli
+        document.getElementById('scanner-input').focus(); 
         return;
     }
     let punti = prompt("Costo in Punti (Es. 4):");
     if (!punti || isNaN(punti) || parseInt(punti) < 0) {
-         document.getElementById('scanner-input').focus(); // Riporta il focus se annulli
+         document.getElementById('scanner-input').focus(); 
          return;
     }
 
@@ -307,7 +306,7 @@ function aggiornaSchermoCassa() {
     }
     btnConfirm.disabled = bloccaConferma;
 
-    // AGGIUNTA FONDAMENTALE: rimette sempre il cursore a posto dopo ogni operazione
+    // Rimette sempre il cursore a posto dopo ogni operazione
     document.getElementById('scanner-input').focus();
 }
 
@@ -397,7 +396,9 @@ function apriModale(idModale) { document.getElementById(idModale).style.display 
 function chiudiModale(idModale) { document.getElementById(idModale).style.display = 'none'; }
 
 
-// --- REGISTRAZIONE NUOVO UTENTE E CALCOLO PUNTI ---
+// ==========================================
+// REGISTRAZIONE NUOVO UTENTE (OTTIMIZZATA)
+// ==========================================
 const inputNucleo = document.getElementById('nuovo-nucleo');
 const inputPunti = document.getElementById('nuovo-punti-previsti');
 
@@ -451,12 +452,30 @@ if (fileInput) {
     });
 }
 
-function convertiInBase64(file) {
+// Compressione dell'immagine (riduce peso per database)
+function comprimiImmagine(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
         reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800; 
+                let scaleSize = 1;
+                if (img.width > MAX_WIDTH) {
+                    scaleSize = MAX_WIDTH / img.width;
+                }
+                canvas.width = img.width * scaleSize;
+                canvas.height = img.height * scaleSize;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const base64Compresso = canvas.toDataURL('image/jpeg', 0.7);
+                resolve(base64Compresso);
+            };
+        };
+        reader.onerror = error => reject(error);
     });
 }
 
@@ -465,6 +484,7 @@ function prendiValoreHtml(idNome) {
     return elemento ? elemento.value : "";
 }
 
+// Salvataggio utente con blocco pulsante per evitare click multipli
 if (formIscrizione) {
     formIscrizione.addEventListener('submit', async function(evento) {
         evento.preventDefault(); 
@@ -473,12 +493,18 @@ if (formIscrizione) {
             formIscrizione.reportValidity();
             return;
         }
+
+        const btnSubmit = formIscrizione.querySelector('button[type="submit"]');
+        const testoOriginale = btnSubmit.textContent || "Salva Iscrizione";
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = "⏳ Salvataggio in corso...";
+        btnSubmit.style.backgroundColor = "#6c757d";
         
         try {
             let base64Array = [];
             if (fileInput.files.length > 0) {
                 for (let i = 0; i < fileInput.files.length; i++) {
-                    let stringaB64 = await convertiInBase64(fileInput.files[i]);
+                    let stringaB64 = await comprimiImmagine(fileInput.files[i]);
                     base64Array.push(stringaB64);
                 }
             }
@@ -493,7 +519,7 @@ if (formIscrizione) {
                 provincia: prendiValoreHtml('nuova-provincia'),
                 indirizzo_abitazione: prendiValoreHtml('nuovo-indirizzo'),
                 numero_civico: prendiValoreHtml('nuovo-civico'),
-                cittadinanza: prendiValoreHtml('nuova-cittadinanza'),
+                cittadinanza: prendiValoreHtml('nuovo-cittadinanza'),
                 numeroNucleoFamiliare: parseInt(prendiValoreHtml('nuovo-nucleo')) || 1,
                 valoreIsee: prendiValoreHtml('nuovo-isee'),
                 documentoBase64: pacchettoImmagini
@@ -516,16 +542,26 @@ if (formIscrizione) {
                 cancellaAnteprima();
                 chiudiModale('modal-nuova-iscrizione');
             })
-            .catch(errore => alert("❌ Errore dal server: " + errore.message));
+            .catch(errore => alert("❌ Errore dal server: " + errore.message))
+            .finally(() => {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = testoOriginale;
+                btnSubmit.style.backgroundColor = ""; 
+            });
 
         } catch (erroreJS) {
             alert("⚠️ Errore interno Javascript: " + erroreJS);
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = testoOriginale;
+            btnSubmit.style.backgroundColor = "";
         }
     });
 }
 
 
-// --- ANAGRAFICA E DETTAGLI ---
+// ==========================================
+// ANAGRAFICA E DETTAGLI 
+// ==========================================
 let utenteInDettaglio = null;
 
 function apriDettagliUtente(tessera) {
@@ -586,7 +622,7 @@ document.getElementById('btn-elimina-doc-db').addEventListener('click', () => {
 
 
 // ==========================================
-// 15. VERIFICA IDENTITÀ (CASSA E ANAGRAFICA)
+// VERIFICA IDENTITÀ (CASSA E ANAGRAFICA)
 // ==========================================
 
 function mostraDocumentoPos() {
