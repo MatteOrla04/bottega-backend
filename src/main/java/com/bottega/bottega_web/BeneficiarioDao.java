@@ -156,15 +156,15 @@ public void resetPuntiSettimanale(Long idBottega) {
 }
 
 // NUOVO METODO: Usato solo dal Robot notturno per aggiornare tutte le botteghe insieme
-public void resetPuntiSettimanaleGlobale() {
-    String sql = "UPDATE beneficiari SET saldo_punti = CASE " +
-                 "WHEN numero_nucleo_familiare <= 1 THEN 10 ELSE 20 + ((numero_nucleo_familiare - 2) * 5) END";
-    try (java.sql.Connection conn = dataSource.getConnection(); 
-         java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
-        int righeAggiornate = pstmt.executeUpdate();
-        System.out.println("RESET ESEGUITO: Punti ricaricati per " + righeAggiornate + " beneficiari su tutto il server.");
-    } catch (java.sql.SQLException e) { 
-        e.printStackTrace(); 
+    public void resetPuntiSettimanaleGlobale() {
+        String sql = "UPDATE beneficiari SET saldo_punti = CASE " +
+                     "WHEN numero_nucleo_familiare <= 1 THEN 10 ELSE 20 + ((numero_nucleo_familiare - 2) * 5) END";
+        try (java.sql.Connection conn = dataSource.getConnection(); 
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            int righeAggiornate = pstmt.executeUpdate();
+            System.out.println("RESET ESEGUITO: Punti ricaricati per " + righeAggiornate + " beneficiari su tutto il server.");
+        } catch (java.sql.SQLException e) { 
+            e.printStackTrace(); 
+        }
     }
-}
 }
