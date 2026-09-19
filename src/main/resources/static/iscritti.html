@@ -180,13 +180,17 @@
                 </div>
             `;
             
-            // 2. Accendo i bottoni del documento SE c'è un'immagine salvata
-            const areaDoc = document.getElementById('area-documento');
-            if (cliente.documentoBase64 && cliente.documentoBase64.trim() !== "") {
-                areaDoc.style.display = 'block'; 
-            } else {
-                areaDoc.style.display = 'none';
-            }
+           // 2. Accendo i bottoni del documento SE c'è un'immagine salvata
+const areaDoc = document.getElementById('area-documento');
+if (cliente.documentoBase64 && 
+    cliente.documentoBase64 !== "null" && 
+    cliente.documentoBase64 !== "[]" && 
+    String(cliente.documentoBase64).trim() !== "") {
+    
+    areaDoc.style.display = 'block'; 
+} else {
+    areaDoc.style.display = 'none';
+}
 
             // 3. Apro la modale
             document.getElementById('modal-dettagli-utente').style.display = 'block';
