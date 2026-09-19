@@ -59,7 +59,7 @@ logo.addEventListener('click', () => {
     dashboard.classList.remove('hidden');
 });
 
-/// --- MOTORE CENTRALE CASSA (SCANNER) ---
+// --- MOTORE CENTRALE CASSA (SCANNER) ---
 const manualInput = document.getElementById('manual-input');
 const btnManualSearch = document.getElementById('btn-manual-search');
 
@@ -148,7 +148,6 @@ btnManualSearch.addEventListener('click', () => {
 manualInput.addEventListener('keypress', function(evento) {
     if (evento.key === 'Enter') btnManualSearch.click(); 
 });
-
 function aggiungiAlCarrello(prodotto) {
     let costoAttuale = 0;
     carrello.forEach(item => costoAttuale += (item.costoUnitario * item.quantita));
