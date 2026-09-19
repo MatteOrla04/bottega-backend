@@ -62,21 +62,24 @@
     </main>
 
     <section id="pos-system" class="hidden">
-        <div id="pos-header" class="pos-box state-0">
-            <h1 id="status-message">IN ATTESA - SCANSIONA TESSERA</h1>
-
-            <div id="manual-search-container" style="margin-top: 15px; margin-bottom: 15px; text-align: center;">
-                <input type="text" id="manual-input" placeholder="Digita codice tessera e prodotto..." style="padding: 10px; width: 60%; max-width: 300px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px;">
-                <button id="btn-manual-search" style="padding: 10px 20px; background-color: #007aff; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;">Cerca</button>
-                <button onclick="aggiungiProdottoLibero()" style="padding: 10px 20px; margin-left: 10px; background-color: #28a745; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;">Prodotto Libero</button>
+        <div id="pos-header" class="pos-box state-0" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; flex-wrap: wrap; gap: 15px;">
+            
+            <!-- LATO SINISTRO: Stato e Ricerca -->
+            <div style="flex: 1; min-width: 300px; text-align: left;">
+                <h2 id="status-message" style="margin-top: 0; margin-bottom: 15px;">IN ATTESA - SCANSIONA TESSERA</h2>
+                <div id="manual-search-container" style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="manual-input" placeholder="Codice tessera o prodotto..." style="padding: 10px; width: 100%; max-width: 250px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px;">
+                    <button id="btn-manual-search" style="padding: 10px 15px; background-color: #007aff; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: bold; white-space: nowrap;">🔍 Cerca</button>
+                    <button onclick="aggiungiProdottoLibero()" style="padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: bold; white-space: nowrap;">+ Prodotto Libero</button>
+                </div>
             </div>
 
-            <!-- IL BOTTONE DELLA CASSA -->
-            <div id="user-info" class="hidden" style="text-align: right;">
-                <h2 id="user-name">---</h2>
-                <p>Punti Iniziali: <span id="user-budget">---</span></p>
-                <button id="btn-vedi-documento-pos" style="display: none; padding: 6px 12px; background-color: #f39c12; color: white; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; margin-top: 5px; font-size: 14px;" onclick="mostraDocumentoPos()">
-                      Verifica Documento
+            <!-- LATO DESTRO: Info Utente -->
+            <div id="user-info" class="hidden" style="flex: 1; min-width: 250px; text-align: right; border-left: 2px solid rgba(255,255,255,0.3); padding-left: 20px;">
+                <h2 id="user-name" style="margin-top: 0; margin-bottom: 5px; font-size: 1.8em;">---</h2>
+                <p style="font-size: 1.2em; margin: 0 0 10px 0;">Punti Iniziali: <strong id="user-budget" style="font-size: 1.2em;">---</strong></p>
+                <button id="btn-vedi-documento-pos" style="display: none; padding: 8px 15px; background-color: #f39c12; color: white; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;" onclick="mostraDocumentoPos()">
+                     👁️ Verifica Documento
                 </button>
             </div>
         </div>

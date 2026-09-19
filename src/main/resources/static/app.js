@@ -59,13 +59,34 @@ logo.addEventListener('click', () => {
     dashboard.classList.remove('hidden');
 });
 
-// --- MOTORE CENTRALE CASSA (SCANNER) ---
+/// --- MOTORE CENTRALE CASSA (SCANNER) ---
 const manualInput = document.getElementById('manual-input');
 const btnManualSearch = document.getElementById('btn-manual-search');
 
 function processaScansione(codiceLetto) {
     if (!codiceLetto || codiceLetto.trim() === "") return;
     codiceLetto = codiceLetto.trim().toUpperCase(); 
+
+    // 1. BLOCCHIAMO IL BOTTONE E L'INPUT DI RICERCA
+    const testoOriginaleBtn = btnManualSearch ? btnManualSearch.innerHTML : "🔍 Cerca";
+    if (btnManualSearch) {
+        btnManualSearch.disabled = true;
+        btnManualSearch.innerHTML = "⏳...";
+    }
+    if (manualInput) manualInput.disabled = true;
+
+    // Funzione interna per sbloccare tutto alla fine
+    const sbloccaInterfaccia = () => {
+        if (btnManualSearch) {
+            btnManualSearch.disabled = false;
+            btnManualSearch.innerHTML = testoOriginaleBtn;
+        }
+        if (manualInput) {
+            manualInput.disabled = false;
+            manualInput.value = ''; // Svuota il campo per la prossima ricerca
+        }
+        document.getElementById('scanner-input').focus();
+    };
 
     if (codiceLetto.startsWith("TESS-")) { 
         fetch('/api/cassa/beneficiario?tessera=' + codiceLetto)
@@ -89,12 +110,14 @@ function processaScansione(codiceLetto) {
                 
                 const btnDocPos = document.getElementById('btn-vedi-documento-pos');
                 if (btnDocPos) {
-                    btnDocPos.style.display = (cliente.documentoBase64 && cliente.documentoBase64.trim() !== "") ? 'inline-block' : 'none';
+                    btnDocPos.style.display = (cliente.documentoBase64 && cliente.documentoBase64 !== "null" && cliente.documentoBase64 !== "[]" && cliente.documentoBase64.trim() !== "") ? 'inline-block' : 'none';
                 }
 
                 aggiornaSchermoCassa();
             })
-            .catch(errore => console.error("Errore di rete:", errore));
+            .catch(errore => console.error("Errore di rete:", errore))
+            .finally(() => sbloccaInterfaccia()); // 2. SBLOCCHIAMO SEMPRE ALLA FINE
+            
     } else {
         fetch('/api/cassa/prodotto?barre=' + codiceLetto)
             .then(response => response.text())
@@ -106,27 +129,25 @@ function processaScansione(codiceLetto) {
                 const prodotto = JSON.parse(testo);
                 aggiungiAlCarrello(prodotto);
             })
-            .catch(errore => console.error("Errore di rete:", errore));
+            .catch(errore => console.error("Errore di rete:", errore))
+            .finally(() => sbloccaInterfaccia()); // 2. SBLOCCHIAMO SEMPRE ALLA FINE
     }
 }
 
 scannerInput.addEventListener('keypress', function(evento) {
     if (evento.key === 'Enter') {
         processaScansione(scannerInput.value); 
-        scannerInput.value = ''; 
+        scannerInput.value = ''; // Lo scanner invisibile si svuota subito
     }
 });
 
 btnManualSearch.addEventListener('click', () => {
     processaScansione(manualInput.value); 
-    manualInput.value = ''; 
-    scannerInput.focus();
 });
 
 manualInput.addEventListener('keypress', function(evento) {
     if (evento.key === 'Enter') btnManualSearch.click(); 
 });
-
 
 function aggiungiAlCarrello(prodotto) {
     let costoAttuale = 0;
@@ -576,7 +597,12 @@ function apriDettagliUtente(tessera) {
             
             const areaDoc = document.getElementById('area-documento');
             
-            if (cliente.documentoBase64 && cliente.documentoBase64.trim() !== "") {
+            // ECCO IL CONTROLLO BLINDATO: Verifica che non sia nullo, "null" testuale o vuoto
+            if (cliente.documentoBase64 && 
+                cliente.documentoBase64 !== "null" && 
+                cliente.documentoBase64 !== "[]" && 
+                cliente.documentoBase64.trim() !== "") {
+                
                 areaDoc.style.display = 'block'; 
             } else {
                 areaDoc.style.display = 'none';
