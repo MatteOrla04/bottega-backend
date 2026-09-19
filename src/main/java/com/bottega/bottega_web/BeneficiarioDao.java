@@ -116,16 +116,22 @@ public void eliminaBeneficiario(String codiceTessera, Long idBottega) {
 }
 
 public List<Beneficiario> trovaTutti(Long idBottega) {
-    String sql = "SELECT * FROM beneficiari WHERE id_bottega = ?";
+    // ELIMINATO L'ASTERISCO: Chiediamo esplicitamente tutte le colonne TRANNE documento_base64
+    String sql = "SELECT id, codice_tessera, nome, cognome, saldo_punti, telefono, citta, " +
+                 "cittadinanza, indirizzo_abitazione, numero_civico, provincia, " +
+                 "numero_nucleo_familiare, valore_isee, id_bottega " +
+                 "FROM beneficiari WHERE id_bottega = ?";
+                 
     List<Beneficiario> lista = new ArrayList<>();
     try (Connection conn = dataSource.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
         pstmt.setLong(1, idBottega);
-        try(java.sql.ResultSet rs = pstmt.executeQuery()){
+        try (java.sql.ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 Beneficiario b = new Beneficiario(
                     rs.getInt("id"), rs.getString("codice_tessera"), rs.getString("nome"), rs.getString("cognome"),
                     rs.getInt("saldo_punti"), rs.getString("telefono"), rs.getString("citta"), rs.getString("cittadinanza"),
-                    null, rs.getString("indirizzo_abitazione"), rs.getString("numero_civico"), rs.getString("provincia"),
+                    null, // Passiamo null al posto del documento Base64 per alleggerire la RAM!
+                    rs.getString("indirizzo_abitazione"), rs.getString("numero_civico"), rs.getString("provincia"),
                     rs.getInt("numero_nucleo_familiare"), rs.getString("valore_isee")
                 );
                 b.setIdBottega(rs.getLong("id_bottega"));

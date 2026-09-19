@@ -245,9 +245,15 @@ function inviaNuovoDipendente(event) {
 
 function aggiungiProdottoLibero() {
     let descrizione = prompt("Descrizione prodotto (Es. 1kg Zucchine):");
-    if (!descrizione || descrizione.trim() === "") return;
+    if (!descrizione || descrizione.trim() === "") {
+        document.getElementById('scanner-input').focus(); // Riporta il focus se annulli
+        return;
+    }
     let punti = prompt("Costo in Punti (Es. 4):");
-    if (!punti || isNaN(punti) || parseInt(punti) < 0) return;
+    if (!punti || isNaN(punti) || parseInt(punti) < 0) {
+         document.getElementById('scanner-input').focus(); // Riporta il focus se annulli
+         return;
+    }
 
     let prodottoJolly = {
         codiceBarre: "VARIE",
@@ -257,6 +263,11 @@ function aggiungiProdottoLibero() {
         prezzoCustom: parseInt(punti)
     };
     aggiungiAlCarrello(prodottoJolly);
+    
+    // Forza il cursore a tornare sullo scanner appena finisci di digitare
+    setTimeout(() => {
+        document.getElementById('scanner-input').focus();
+    }, 100);
 }
 
 function aggiornaSchermoCassa() {
@@ -295,8 +306,10 @@ function aggiornaSchermoCassa() {
         }
     }
     btnConfirm.disabled = bloccaConferma;
-}
 
+    // AGGIUNTA FONDAMENTALE: rimette sempre il cursore a posto dopo ogni operazione
+    document.getElementById('scanner-input').focus();
+}
 
 function rimuoviDalCarrello(index) {
     if (carrello[index].quantita > 1) carrello[index].quantita--;

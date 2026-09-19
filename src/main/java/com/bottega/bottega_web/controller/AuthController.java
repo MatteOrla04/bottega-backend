@@ -31,10 +31,14 @@ public class AuthController {
         String passwordCriptata = passwordEncoder.encode(nuovoOperatore.getPasswordHash());
         nuovoOperatore.setPasswordHash(passwordCriptata);
         
-        // MULTI-TENANT: Se è un nuovo cliente o si registra come ADMIN, crea una nuova Bottega isolata
+        // MULTI-TENANT SICURO: Calcolo del nuovo ID sequenziale
         if (nuovoOperatore.getRuolo() == null || nuovoOperatore.getRuolo().isEmpty() || nuovoOperatore.getRuolo().equals("ADMIN")) {
             nuovoOperatore.setRuolo("ADMIN");
-            nuovoOperatore.setIdBottega(System.currentTimeMillis() % 100000); // Genera un ID Bottega univoco
+            
+            Long maxId = operatoreRepo.findMaxIdBottega();
+            Long nuovoIdBottega = (maxId != null ? maxId : 0L) + 1L; // Se è vuoto parte da 1, altrimenti somma 1 all'ultimo
+            
+            nuovoOperatore.setIdBottega(nuovoIdBottega);
         }
         
         operatoreRepo.save(nuovoOperatore);

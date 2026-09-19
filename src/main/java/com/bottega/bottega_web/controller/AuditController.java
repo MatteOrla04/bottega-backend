@@ -4,6 +4,7 @@ import com.bottega.bottega_web.model.AuditLog;
 import com.bottega.bottega_web.repositary.AuditLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,10 +17,9 @@ public class AuditController {
     @Autowired
     private AuditLogRepository auditLogRepo;
 
-    // L'endpoint che spedisce tutti i log al frontend
     @GetMapping("/logs")
-    public List<AuditLog> getTuttiILog() {
-        // Peschiamo tutti i log dal database (dal più vecchio al più nuovo)
-        return auditLogRepo.findAll();
+    public List<AuditLog> getTuttiILog(@RequestHeader(value = "idBottega", defaultValue = "1") Long idBottega) {
+        // Ora il server usa zero memoria extra. Estrae solo gli ultimi 100 log utili!
+        return auditLogRepo.findTop100ByOperatore_IdBottegaOrderByDataOraDesc(idBottega);
     }
 }
