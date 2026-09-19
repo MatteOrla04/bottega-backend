@@ -150,26 +150,26 @@
             }
         }
 
-        // --- LA FUNZIONE CHE COSTRUISCE LA FINESTRA DETTAGLI ---
-        function mostraDettagli(indice) {
-            const cliente = listaIscritti[indice];
-            utenteSelezionato = cliente; 
+       // --- LA FUNZIONE CHE COSTRUISCE LA FINESTRA DETTAGLI ---
+       function mostraDettagli(indice) {
+            const clienteBase = listaIscritti[indice];
+            utenteSelezionato = clienteBase; 
             
             const contenitore = document.getElementById('dettagli-contenuto');
             
-            // 1. Compilo i dati anagrafici
+            // 1. Compilo i dati anagrafici base
             contenitore.innerHTML = `
-                <p><strong>Tessera:</strong> <span style="color:var(--primary-color); font-weight:bold;">${cliente.codiceTessera}</span></p>
-                <p><strong>Nome e Cognome:</strong> ${cliente.nome} ${cliente.cognome}</p>
-                <p><strong>Telefono:</strong> ${cliente.telefono || "N/A"}</p>
-                <p><strong>Residenza:</strong> ${cliente.indirizzo_abitazione || "N/A"} ${cliente.numero_civico || ""}, ${cliente.citta || "N/A"} (${cliente.provincia || "N/A"})</p>
-                <p><strong>Cittadinanza:</strong> ${cliente.cittadinanza || "N/A"}</p>
-                <p><strong>Nucleo Familiare:</strong> ${cliente.numeroNucleoFamiliare || 0} componenti</p>
-                <p><strong>Valore ISEE:</strong> € ${cliente.valoreIsee || "0,00"}</p>
+                <p><strong>Tessera:</strong> <span style="color:var(--primary-color); font-weight:bold;">${clienteBase.codiceTessera}</span></p>
+                <p><strong>Nome e Cognome:</strong> ${clienteBase.nome} ${clienteBase.cognome}</p>
+                <p><strong>Telefono:</strong> ${clienteBase.telefono || "N/A"}</p>
+                <p><strong>Residenza:</strong> ${clienteBase.indirizzo_abitazione || "N/A"} ${clienteBase.numero_civico || ""}, ${clienteBase.citta || "N/A"} (${clienteBase.provincia || "N/A"})</p>
+                <p><strong>Cittadinanza:</strong> ${clienteBase.cittadinanza || "N/A"}</p>
+                <p><strong>Nucleo Familiare:</strong> ${clienteBase.numeroNucleoFamiliare || 0} componenti</p>
+                <p><strong>Valore ISEE:</strong> € ${clienteBase.valoreIsee || "0,00"}</p>
                 
                 <div style="background-color: #f4f4f9; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center;">
                     <p style="margin: 0; font-size: 0.9em;">Saldo Punti Attuale:</p>
-                    <h1 style="color: var(--green-accent); margin: 5px 0; font-size: 2.5em;">${cliente.saldoPunti}</h1>
+                    <h1 style="color: var(--green-accent); margin: 5px 0; font-size: 2.5em;">${clienteBase.saldoPunti}</h1>
                 </div>
 
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ccc;">
@@ -180,23 +180,28 @@
                 </div>
             `;
             
-           // 2. Accendo i bottoni del documento SE c'è un'immagine salvata
-const areaDoc = document.getElementById('area-documento');
-if (cliente.documentoBase64 && 
-    cliente.documentoBase64 !== "null" && 
-    cliente.documentoBase64 !== "[]" && 
-    String(cliente.documentoBase64).trim() !== "") {
-    
-    areaDoc.style.display = 'block'; 
-} else {
-    areaDoc.style.display = 'none';
-}
-
-            // 3. Apro la modale
+            // 2. Apro la modale (il bottone documento all'inizio è nascosto)
             document.getElementById('modal-dettagli-utente').style.display = 'block';
+            const areaDoc = document.getElementById('area-documento');
+            areaDoc.style.display = 'none';
+
+            // 3. RECUPERO IL DOCUMENTO DAL DATABASE (Perché la lista generale Java non lo aveva!)
+            fetch('/api/cassa/beneficiario?tessera=' + clienteBase.codiceTessera)
+                .then(response => response.json())
+                .then(clienteCompleto => {
+                    utenteSelezionato = clienteCompleto; // Sostituisco con i dati completi di foto
+                    
+                    if (clienteCompleto.documentoBase64 && 
+                        clienteCompleto.documentoBase64 !== "null" && 
+                        clienteCompleto.documentoBase64 !== "[]" && 
+                        String(clienteCompleto.documentoBase64).trim() !== "") {
+                        areaDoc.style.display = 'block'; 
+                    }
+                })
+                .catch(err => console.error("Errore recupero foto:", err));
 
             // 4. Carico lo storico acquisti
-            fetch('/api/cassa/beneficiario/storico?tessera=' + cliente.codiceTessera)
+            fetch('/api/cassa/beneficiario/storico?tessera=' + clienteBase.codiceTessera)
                 .then(response => response.json())
                 .then(storico => {
                     const divStorico = document.getElementById('tabella-storico');
@@ -246,7 +251,6 @@ if (cliente.documentoBase64 &&
                     document.getElementById('tabella-storico').innerHTML = "<p style='color: red;'>Errore nel caricamento. Riprova.</p>";
                 });
         }
-
       // --- MOTORE CHE APRE LA FOTO DEL DOCUMENTO ---
       function mostraDocumentoAnagrafica() {
             if (!utenteSelezionato || !utenteSelezionato.documentoBase64) return;
